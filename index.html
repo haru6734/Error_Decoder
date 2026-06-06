@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error Decoder</title>
+  
+  <!-- Modern SVG Emoji Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
+  
+  <!-- Load React 18 and ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  
+  <!-- Load Babel Standalone to parse JSX on the fly in the browser -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Global hooks mapping shim -->
+  <script>
+    window.useState = React.useState;
+    window.useEffect = React.useEffect;
+    window.useRef = React.useRef;
+  </script>
+
+  <!-- Global stylesheet -->
+  <link rel="stylesheet" href="/src/ErrorDecoder.css">
+
+  <!-- Global reset/styles for the index wrapper -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #08090c; /* Default matches dark mode */
+      transition: background-color 0.25s ease;
+    }
+    body.light-theme {
+      background-color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Load services and configurations -->
+  <script type="text/babel" src="/src/constants.js"></script>
+  <script type="text/babel" src="/src/geminiService.js"></script>
+
+  <!-- Load components in order -->
+  <script type="text/babel" src="/src/components/Header.jsx"></script>
+  <script type="text/babel" src="/src/components/ConfigCard.jsx"></script>
+  <script type="text/babel" src="/src/components/VisualGuide.jsx"></script>
+  <script type="text/babel" src="/src/components/ResultCard.jsx"></script>
+  <script type="text/babel" src="/src/components/HistoryDrawer.jsx"></script>
+  <script type="text/babel" src="/src/components/AuthModal.jsx"></script>
+
+  <!-- Main app component -->
+  <script type="text/babel" src="/src/ErrorDecoder.jsx"></script>
+
+  <!-- App Entry Point -->
+  <script type="text/babel" src="/src/main.jsx"></script>
+</body>
+</html>

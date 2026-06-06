@@ -1,0 +1,52 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Python virtual environments (CRITICAL for Python setups)
+venv/
+.venv/
+env/
+ENV/
+lib/
+pip-selfcheck.json
+
+# Build and deployment outputs
+dist/
+tmp/
+out/
+build/
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE and System files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables (CRITICAL)
+.env
+.env.local
+.env.*.local
+
+# Local tools / Agent caches
+.gemini/
+.antigravity/
