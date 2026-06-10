@@ -70,34 +70,65 @@ class handler(BaseHTTPRequestHandler):
             }, ensure_ascii=False).encode('utf-8'))
             return
 
-        # Forward payload to Gemini API
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-            req = urllib.request.Request(
-                url,
-                data=post_data,
-                headers={'Content-Type': 'application/json'},
-                method='POST'
-            )
+        # Forward payload to Gemini API with retry and fallback models
+        models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-3.5-flash']
+        success = False
+        last_error_code = 500
+        last_error_body = b''
+
+        for model in models:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
             
-            with urllib.request.urlopen(req) as response:
-                res_body = response.read()
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json; charset=utf-8')
-                self.end_headers()
-                self.wfile.write(res_body)
-        except urllib.error.HTTPError as e:
-            res_body = e.read()
-            self.send_response(e.code)
+            # Try up to 2 times for each model (1 original + 1 retry if transient error occurs)
+            for attempt in range(2):
+                try:
+                    req = urllib.request.Request(
+                        url,
+                        data=post_data,
+                        headers={'Content-Type': 'application/json'},
+                        method='POST'
+                    )
+                    with urllib.request.urlopen(req) as response:
+                        res_body = response.read()
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/json; charset=utf-8')
+                        self.end_headers()
+                        self.wfile.write(res_body)
+                        success = True
+                        break
+                except urllib.error.HTTPError as e:
+                    last_error_code = e.code
+                    try:
+                        last_error_body = e.read()
+                        error_json = json.loads(last_error_body.decode('utf-8'))
+                        error_msg = error_json.get('error', {}).get('message', '')
+                    except Exception:
+                        error_msg = str(e)
+                    
+                    # Check if error is rate limit (429), server overloaded (503) or contains high demand message
+                    is_transient = (last_error_code in [429, 503]) or ("high demand" in error_msg.lower()) or ("quota" in error_msg.lower())
+                    
+                    if is_transient and attempt == 0:
+                        # Sleep 1 second before retrying this model
+                        time.sleep(1)
+                        continue
+                    else:
+                        # Move to next fallback model
+                        break
+                except Exception as e:
+                    last_error_code = 500
+                    last_error_body = json.dumps({
+                        'error': {
+                            'message': f'Gemini API 통신 실패 ({model}): {str(e)}'
+                        }
+                    }, ensure_ascii=False).encode('utf-8')
+                    break
+            
+            if success:
+                break
+        
+        if not success:
+            self.send_response(last_error_code)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.end_headers()
-            self.wfile.write(res_body)
-        except Exception as e:
-            self.send_response(500)
-            self.send_header('Content-Type', 'application/json; charset=utf-8')
-            self.end_headers()
-            self.wfile.write(json.dumps({
-                'error': {
-                    'message': f'Gemini API 통신 실패: {str(e)}'
-                }
-            }, ensure_ascii=False).encode('utf-8'))
+            self.wfile.write(last_error_body)
