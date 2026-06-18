@@ -42,21 +42,22 @@
   <div id="root"></div>
 
   <!-- Load services and configurations -->
-  <script type="text/babel" src="/src/constants.js"></script>
-  <script type="text/babel" src="/src/geminiService.js"></script>
+  <script type="text/babel" data-type="module" src="/src/constants.js"></script>
+  <script type="text/babel" data-type="module" src="/src/geminiService.js"></script>
 
   <!-- Load components in order -->
-  <script type="text/babel" src="/src/components/Header.jsx"></script>
-  <script type="text/babel" src="/src/components/ConfigCard.jsx"></script>
-  <script type="text/babel" src="/src/components/VisualGuide.jsx"></script>
-  <script type="text/babel" src="/src/components/ResultCard.jsx"></script>
-  <script type="text/babel" src="/src/components/HistoryDrawer.jsx"></script>
-  <script type="text/babel" src="/src/components/AuthModal.jsx"></script>
+  <script type="text/babel" data-type="module" src="/src/components/Header.jsx"></script>
+  <script type="text/babel" data-type="module" src="/src/components/ConfigCard.jsx"></script>
+  <script type="text/babel" data-type="module" src="/src/components/VisualGuide.jsx"></script>
+  <script type="text/babel" data-type="module" src="/src/components/ResultCard.jsx"></script>
+  <script type="text/babel" data-type="module" src="/src/components/HistoryDrawer.jsx"></script>
+  <script type="text/babel" data-type="module" src="/src/components/AuthModal.jsx"></script>
 
   <!-- Main app component -->
-  <script type="text/babel" src="/src/ErrorDecoder.jsx"></script>
+  <script type="text/babel" data-type="module" src="/src/ErrorDecoder.jsx"></script>
 
   <!-- App Entry Point -->
-  <script type="text/babel" src="/src/main.jsx"></script>
+  <script type="text/babel" data-type="module" src="/src/main.jsx"></script>
 </body>
 </html>
+
