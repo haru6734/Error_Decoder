@@ -15,7 +15,8 @@ function ConfigCard({
   errorStatus,
   setErrorStatus,
   onAnalyze,
-  lang
+  lang,
+  onSelectSample
 }) {
   const t = window.TRANSLATIONS[lang] || window.TRANSLATIONS.ko;
   const [isDragging, setIsDragging] = useState(false);
@@ -200,6 +201,41 @@ function ConfigCard({
           value={logText}
           onChange={(e) => setLogText(e.target.value)}
         />
+
+        {/* Quick Sample Test Chips Section */}
+        {window.getMockSamples && (
+          <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <span className="err-label" style={{ fontSize: '0.75rem', opacity: 0.85, color: 'var(--text-accent)' }}>
+              {t.trySampleTitle}
+            </span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+              {window.getMockSamples(lang).map(sample => (
+                <button
+                  key={sample.id}
+                  onClick={() => onSelectSample(sample.id)}
+                  disabled={isLoading}
+                  style={{
+                    padding: '0.25rem 0.6rem',
+                    fontSize: '0.75rem',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '12px',
+                    backgroundColor: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s ease',
+                    outline: 'none',
+                    fontWeight: 500,
+                  }}
+                  className="sample-chip-btn"
+                  onMouseOver={(e) => { if (!isLoading) e.target.style.borderColor = 'var(--text-accent)'; }}
+                  onMouseOut={(e) => { if (!isLoading) e.target.style.borderColor = 'var(--border-color)'; }}
+                >
+                  {sample.title}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 3차 방안: 대용량 로그 감지 시 요약 가이드 선택 옵션 노출 */}
         {logText && logText.length > 10000 && (

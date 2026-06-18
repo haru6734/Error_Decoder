@@ -2,7 +2,7 @@
  * ResultCard Component renders the AI Diagnosis Report, listing structured steps,
  * warning-level steps, code copying controls, and prevention tips.
  */
-function ResultCard({ isLoading, result, lang }) {
+function ResultCard({ isLoading, result, lang, onSelectSample }) {
   const t = window.TRANSLATIONS[lang] || window.TRANSLATIONS.ko;
   const [showOnlyWarnings, setShowOnlyWarnings] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
@@ -122,12 +122,35 @@ function ResultCard({ isLoading, result, lang }) {
       
       {/* Placeholder state */}
       {!isLoading && !result && (
-        <div className="err-placeholder-view">
+        <div className="err-placeholder-view" style={{ gap: '1rem' }}>
           <div style={{ fontSize: '2.5rem' }}>🔍</div>
           <h3 style={{ color: 'var(--text-accent)', fontWeight: 700 }}>{t.waiting}</h3>
-          <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>
+          <p style={{ fontSize: '0.85rem', lineHeight: 1.5, margin: 0 }}>
             {t.waitingDesc}
           </p>
+          {onSelectSample && (
+            <button
+              onClick={() => onSelectSample(1001)} // Load first sample (RAM error) as default live demo
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.4rem 1rem',
+                fontSize: '0.8rem',
+                fontWeight: 'bold',
+                border: '1px solid var(--border-color)',
+                borderRadius: '4px',
+                backgroundColor: 'transparent',
+                color: 'var(--text-accent)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                outline: 'none',
+              }}
+              className="sample-load-btn"
+              onMouseOver={(e) => { e.target.style.borderColor = 'var(--text-accent)'; e.target.style.backgroundColor = 'var(--btn-hover)'; }}
+              onMouseOut={(e) => { e.target.style.borderColor = 'var(--border-color)'; e.target.style.backgroundColor = 'transparent'; }}
+            >
+              {t.loadSampleBtn}
+            </button>
+          )}
         </div>
       )}
 
