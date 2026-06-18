@@ -1,7 +1,7 @@
 /**
  * HistoryDrawer Component displaying previous error analysis history in a slide-out drawer.
  */
-function HistoryDrawer({ isOpen, onClose, historyList, onLoadItem, onDeleteItem }) {
+function HistoryDrawer({ isOpen, onClose, historyList, onLoadItem, onDeleteItem, saveHistoryEnabled, onToggleSaveHistory }) {
   return (
     <>
       {/* Backdrop for History Drawer */}
@@ -16,6 +16,18 @@ function HistoryDrawer({ isOpen, onClose, historyList, onLoadItem, onDeleteItem 
           <span className="err-drawer-title">최근 디코드 히스토리</span>
           <button className="btn-minimal" onClick={onClose} style={{ border: 'none', padding: '0.25rem' }}>✕</button>
         </div>
+
+        {/* Privacy Toggle Settings Area */}
+        <div className="err-history-toggle-container">
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            🔒 분석 기록 자동 저장
+          </span>
+          <label className="theme-switch" title="자동 저장 설정">
+            <input type="checkbox" checked={saveHistoryEnabled} onChange={onToggleSaveHistory} />
+            <span className="slider round"></span>
+          </label>
+        </div>
+
         <div className="err-drawer-content">
           {historyList.length === 0 ? (
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', marginTop: '3rem' }}>

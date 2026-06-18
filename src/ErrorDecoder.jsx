@@ -22,6 +22,18 @@ function ErrorDecoder() {
   // History Drawer state
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [historyList, setHistoryList] = useState([]);
+  
+  // Save History toggle state (defaults to false for privacy)
+  const [saveHistoryEnabled, setSaveHistoryEnabled] = useState(() => {
+    return localStorage.getItem('err-save-history') === 'true';
+  });
+
+  const handleToggleSaveHistory = () => {
+    const nextVal = !saveHistoryEnabled;
+    setSaveHistoryEnabled(nextVal);
+    localStorage.setItem('err-save-history', String(nextVal));
+  };
+
 
   // Sync theme
   useEffect(() => {
@@ -223,6 +235,7 @@ function ErrorDecoder() {
   };
 
   const saveToHistory = (newResult) => {
+    if (!saveHistoryEnabled) return; // Skip saving history if toggle is disabled
     try {
       const stored = localStorage.getItem('err-history-list');
       let currentList = stored ? JSON.parse(stored) : [];
@@ -264,6 +277,20 @@ function ErrorDecoder() {
 
   const handleAnalyze = async () => {
     setErrorStatus('');
+    
+    // 1. Detect sensitive information before sending logs to Gemini API
+    if (logText) {
+      const sensitiveList = detectSensitiveInfo(logText);
+      if (sensitiveList.length > 0) {
+        const listText = sensitiveList.map(item => `- [${item.type}] ${item.value}`).join('\n');
+        const confirmMsg = `입력하신 로그에 개인정보 또는 시스템 보안 정보가 포함되어 있습니다:\n\n${listText}\n\n이 데이터는 분석을 위해 외부 AI API(Gemini)로 안전하게 전송됩니다. 전송 전에 민감한 정보를 한 번 더 확인하시거나 마스킹해 주세요.\n\n이대로 분석을 진행하시겠습니까?`;
+        
+        if (!window.confirm(confirmMsg)) {
+          return; // Abort analysis
+        }
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -349,6 +376,8 @@ function ErrorDecoder() {
         historyList={historyList}
         onLoadItem={loadHistoryItem}
         onDeleteItem={deleteHistoryItem}
+        saveHistoryEnabled={saveHistoryEnabled}
+        onToggleSaveHistory={handleToggleSaveHistory}
       />
 
       {/* Google Auth & Mock Payment Modal */}

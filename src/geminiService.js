@@ -171,3 +171,93 @@ const analyzeError = async ({ imageFile, logText, logFileName, logOption = 'smar
 window.analyzeError = analyzeError;
 window.smartFilterLog = smartFilterLog;
 
+/**
+ * Detects sensitive information in log text using regular expressions.
+ * 
+ * @param {string} text - The log text to check
+ * @returns {Array} List of detected sensitive items with type and snippet
+ */
+const detectSensitiveInfo = (text) => {
+  if (!text) return [];
+  
+  const results = [];
+  
+  // 1. Email Pattern
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+  const emails = text.match(emailRegex);
+  if (emails) {
+    const uniqueEmails = [...new Set(emails)];
+    uniqueEmails.forEach(email => {
+      results.push({ type: '이메일 주소', value: email });
+    });
+  }
+  
+  // 2. IP Address Pattern (IPv4)
+  const ipRegex = /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/g;
+  const ips = text.match(ipRegex);
+  if (ips) {
+    const uniqueIps = [...new Set(ips)];
+    uniqueIps.forEach(ip => {
+      results.push({ type: 'IP 주소', value: ip });
+    });
+  }
+  
+  // 3. API Key & Credentials
+  const googleApiKeyRegex = /AIzaSy[A-Za-z0-9_-]{33}/g;
+  const googleKeys = text.match(googleApiKeyRegex);
+  if (googleKeys) {
+    const uniqueKeys = [...new Set(googleKeys)];
+    uniqueKeys.forEach(key => {
+      results.push({ type: 'Google API Key', value: key.substring(0, 8) + '...' });
+    });
+  }
+  
+  const credentialRegex = /(?:key|token|password|secret|passwd|auth)\s*[:=]\s*["']?([a-zA-Z0-9_\-]{8,})["']?/gi;
+  let match;
+  const rawCreds = [];
+  while ((match = credentialRegex.exec(text)) !== null) {
+    if (!match[1].startsWith('AIzaSy')) {
+      rawCreds.push(match[0]);
+    }
+  }
+  if (rawCreds.length > 0) {
+    const uniqueCreds = [...new Set(rawCreds)];
+    uniqueCreds.forEach(cred => {
+      results.push({ type: '비밀번호/인증 토큰 의심', value: cred.replace(/[:=]\s*["']?.+["']?/, '=: [보안 마스킹]') });
+    });
+  }
+
+  // 4. Database Connection String URL
+  const dbRegex = /(?:mongodb|postgresql|mysql|oracle|mssql|redis):\/\/[^@\s]+:[^@\s]+@[^\s]+/gi;
+  const dbs = text.match(dbRegex);
+  if (dbs) {
+    const uniqueDbs = [...new Set(dbs)];
+    uniqueDbs.forEach(db => {
+      const masked = db.replace(/:[^@]+@/, ':****@');
+      results.push({ type: '데이터베이스 접속 URL', value: masked });
+    });
+  }
+
+  // 5. File Path (User Directory username leak)
+  const winDirRegex = /C:\\Users\\[a-zA-Z0-9_-]+/gi;
+  const unixDirRegex = /(?:\/home\/|\/Users\/)[a-zA-Z0-9_-]+/gi;
+  const winDirs = text.match(winDirRegex);
+  if (winDirs) {
+    const uniqueDirs = [...new Set(winDirs)];
+    uniqueDirs.forEach(dir => {
+      results.push({ type: '시스템 사용자 경로', value: dir });
+    });
+  }
+  const unixDirs = text.match(unixDirRegex);
+  if (unixDirs) {
+    const uniqueDirs = [...new Set(unixDirs)];
+    uniqueDirs.forEach(dir => {
+      results.push({ type: '시스템 사용자 경로', value: dir });
+    });
+  }
+  
+  return results;
+};
+
+window.detectSensitiveInfo = detectSensitiveInfo;
+
