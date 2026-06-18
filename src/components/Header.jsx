@@ -29,3 +29,6 @@ function Header({ onOpenHistory, theme, onToggleTheme }) {
     </header>
   );
 }
+
+window.Header = Header;
+

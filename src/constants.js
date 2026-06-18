@@ -39,3 +39,6 @@ const getSystemInstruction = () => `너는 세계 최고 수준의 컴퓨터 하
     "향후 같은 문제가 발생하지 않도록 평소에 관리해야 할 점 팁 2"
   ]
 }`;
+
+window.getSystemInstruction = getSystemInstruction;
+

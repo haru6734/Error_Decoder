@@ -360,3 +360,6 @@ function ErrorDecoder() {
     </div>
   );
 }
+
+window.ErrorDecoder = ErrorDecoder;
+

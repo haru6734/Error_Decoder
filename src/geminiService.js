@@ -167,3 +167,7 @@ const analyzeError = async ({ imageFile, logText, logFileName, logOption = 'smar
     return JSON.parse(cleanJsonText);
   }
 };
+
+window.analyzeError = analyzeError;
+window.smartFilterLog = smartFilterLog;
+

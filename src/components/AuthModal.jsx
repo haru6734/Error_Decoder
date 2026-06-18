@@ -99,3 +99,6 @@ function AuthModal({ isOpen, onClose, onSuccess }) {
     </div>
   );
 }
+
+window.AuthModal = AuthModal;
+

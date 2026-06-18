@@ -338,3 +338,6 @@ function ConfigCard({
     </section>
   );
 }
+
+window.ConfigCard = ConfigCard;
+

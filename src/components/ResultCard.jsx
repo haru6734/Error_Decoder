@@ -316,3 +316,6 @@ function getFallbackVisualGuideForStep(step) {
   
   return null;
 }
+
+window.ResultCard = ResultCard;
+

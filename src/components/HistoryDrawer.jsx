@@ -52,3 +52,6 @@ function HistoryDrawer({ isOpen, onClose, historyList, onLoadItem, onDeleteItem 
     </>
   );
 }
+
+window.HistoryDrawer = HistoryDrawer;
+
