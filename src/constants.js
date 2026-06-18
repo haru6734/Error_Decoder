@@ -51,7 +51,7 @@ const TRANSLATIONS = {
   ko: {
     appTitle: "ERROR DECODER",
     appSubtitle: "Multiplatform Intelligence Error Parser",
-    history: "이력",
+    history: "기록",
     historyTitle: "최근 디코드 히스토리",
     historyEmpty: "저장된 분석 기록이 없습니다.",
     historyAutoSave: "분석 기록 자동 저장",
