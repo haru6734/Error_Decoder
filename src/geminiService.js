@@ -75,7 +75,7 @@ const smartFilterLog = (text, option = 'smart') => {
  * Sends error data to the local server backend proxy.
  * Includes local storage paid-token headers.
  */
-const analyzeError = async ({ imageFile, logText, logFileName, logOption = 'smart' }) => {
+const analyzeError = async ({ imageFile, logText, logFileName, logOption = 'smart', lang = 'ko' }) => {
   const parts = [];
 
   // Apply Smart Log Filtering to logText
@@ -94,18 +94,24 @@ const analyzeError = async ({ imageFile, logText, logFileName, logOption = 'smar
   }
 
   // 2. Prepare textual log or query
-  let queryText = `[에러 분석 요청]\n\n`;
+  let queryText = lang === 'en' ? `[Error Analysis Request]\n\n` : `[에러 분석 요청]\n\n`;
   if (optimizedLogText) {
-    queryText += `[로그 내용/텍스트 입력]\n파일 이름: ${logFileName || '텍스트 직접 입력'}\n${optimizedLogText.substring(0, 30000)}\n\n`;
+    queryText += lang === 'en' 
+      ? `[Log Content/Text Input]\nFile Name: ${logFileName || 'Direct Text Input'}\n${optimizedLogText.substring(0, 30000)}\n\n`
+      : `[로그 내용/텍스트 입력]\n파일 이름: ${logFileName || '텍스트 직접 입력'}\n${optimizedLogText.substring(0, 30000)}\n\n`;
   } else {
-    queryText += `[로그 내용/텍스트 입력]\n- 텍스트 분석 내용이 생략되었습니다. 제공된 이미지를 집중적으로 분석해 주세요.\n`;
+    queryText += lang === 'en'
+      ? `[Log Content/Text Input]\n- Text analysis content omitted. Please focus on analyzing the provided image.\n`
+      : `[로그 내용/텍스트 입력]\n- 텍스트 분석 내용이 생략되었습니다. 제공된 이미지를 집중적으로 분석해 주세요.\n`;
   }
-  queryText += `\n위 에러 데이터를 바탕으로 진단을 진행해주세요.`;
+  queryText += lang === 'en'
+    ? `\nPlease proceed with the diagnosis based on the above error data.`
+    : `\n위 에러 데이터를 바탕으로 진단을 진행해주세요.`;
   
   parts.push({ text: queryText });
 
-  // References global function
-  const systemInstructionText = getSystemInstruction();
+  // References global function with language parameter
+  const systemInstructionText = getSystemInstruction(lang);
 
   const requestBody = {
     contents: [{ parts }],

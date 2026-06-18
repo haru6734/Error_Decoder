@@ -1,7 +1,8 @@
 /**
  * HistoryDrawer Component displaying previous error analysis history in a slide-out drawer.
  */
-function HistoryDrawer({ isOpen, onClose, historyList, onLoadItem, onDeleteItem, saveHistoryEnabled, onToggleSaveHistory }) {
+function HistoryDrawer({ isOpen, onClose, historyList, onLoadItem, onDeleteItem, saveHistoryEnabled, onToggleSaveHistory, lang }) {
+  const t = window.TRANSLATIONS[lang] || window.TRANSLATIONS.ko;
   return (
     <>
       {/* Backdrop for History Drawer */}
@@ -13,16 +14,16 @@ function HistoryDrawer({ isOpen, onClose, historyList, onLoadItem, onDeleteItem,
       {/* History Drawer */}
       <aside className={`err-drawer ${isOpen ? 'open' : ''}`}>
         <div className="err-drawer-header">
-          <span className="err-drawer-title">최근 디코드 히스토리</span>
+          <span className="err-drawer-title">{t.historyTitle}</span>
           <button className="btn-minimal" onClick={onClose} style={{ border: 'none', padding: '0.25rem' }}>✕</button>
         </div>
 
         {/* Privacy Toggle Settings Area */}
         <div className="err-history-toggle-container">
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            🔒 분석 기록 자동 저장
+            🔒 {t.historyAutoSave}
           </span>
-          <label className="theme-switch" title="자동 저장 설정">
+          <label className="theme-switch" title={t.historyAutoSave}>
             <input type="checkbox" checked={saveHistoryEnabled} onChange={onToggleSaveHistory} />
             <span className="slider round"></span>
           </label>
@@ -31,7 +32,7 @@ function HistoryDrawer({ isOpen, onClose, historyList, onLoadItem, onDeleteItem,
         <div className="err-drawer-content">
           {historyList.length === 0 ? (
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', marginTop: '3rem' }}>
-              저장된 분석 기록이 없습니다.
+              {t.historyEmpty}
             </div>
           ) : (
             historyList.map((item) => (
@@ -50,7 +51,7 @@ function HistoryDrawer({ isOpen, onClose, historyList, onLoadItem, onDeleteItem,
                     style={{ border: 'none', padding: '0.1rem 0.3rem', fontSize: '0.75rem', color: 'var(--warning-color)' }}
                     onClick={(e) => onDeleteItem(item.id, e)}
                   >
-                    삭제
+                    {t.delete}
                   </button>
                 </div>
                 <p className="err-history-summary">
@@ -66,4 +67,3 @@ function HistoryDrawer({ isOpen, onClose, historyList, onLoadItem, onDeleteItem,
 }
 
 window.HistoryDrawer = HistoryDrawer;
-

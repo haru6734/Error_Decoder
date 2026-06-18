@@ -2,7 +2,8 @@
  * ResultCard Component renders the AI Diagnosis Report, listing structured steps,
  * warning-level steps, code copying controls, and prevention tips.
  */
-function ResultCard({ isLoading, result }) {
+function ResultCard({ isLoading, result, lang }) {
+  const t = window.TRANSLATIONS[lang] || window.TRANSLATIONS.ko;
   const [showOnlyWarnings, setShowOnlyWarnings] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [mainCopied, setMainCopied] = useState(false);
@@ -37,10 +38,17 @@ function ResultCard({ isLoading, result }) {
   }, [isLoading]);
 
   const getLoadingMessage = (p) => {
-    if (p < 25) return "분석 데이터 로드 및 구문 분석 중...";
-    if (p < 55) return "예외 패턴 데이터베이스 매칭 및 원인 식별 중...";
-    if (p < 85) return "AI 추론 엔진 가동 및 솔루션 수립 중...";
-    return "리포트 서식 적용 및 예방 제안 검토 중...";
+    if (lang === 'en') {
+      if (p < 25) return "Loading analysis data and parsing syntax...";
+      if (p < 55) return "Matching exception patterns in DB and identifying causes...";
+      if (p < 85) return "Starting AI inference engine and formulating solution...";
+      return "Applying report format and reviewing prevention suggestions...";
+    } else {
+      if (p < 25) return "분석 데이터 로드 및 구문 분석 중...";
+      if (p < 55) return "예외 패턴 데이터베이스 매칭 및 원인 식별 중...";
+      if (p < 85) return "AI 추론 엔진 가동 및 솔루션 수립 중...";
+      return "리포트 서식 적용 및 예방 제안 검토 중...";
+    }
   };
 
   const copyToClipboard = (text, index) => {
@@ -56,25 +64,48 @@ function ResultCard({ isLoading, result }) {
 
   const copyAllResults = () => {
     if (!result) return;
-    let text = `[에러 해독 결과: ${result.error_analysis.code_name}]\n`;
-    text += `발생 위치: ${result.error_analysis.location_context}\n`;
-    text += `원인 분석: ${result.error_analysis.simple_description}\n\n`;
-    text += `■ 해결 절차:\n`;
-    result.troubleshooting_steps.forEach((step, idx) => {
-      text += `[단계 ${step.step}] ${step.title} (${step.level})\n`;
-      text += `설명: ${step.description}\n`;
-      if (step.copyable_command) {
-        text += `실행 명령어: ${step.copyable_command}\n`;
-      }
-      if (step.is_warning) {
-        text += `⚠️ 주의: 경고가 동반되는 단계입니다.\n`;
-      }
-      text += `\n`;
-    });
-    text += `■ 예방 팁:\n`;
-    result.prevention_tips.forEach(tip => {
-      text += `- ${tip}\n`;
-    });
+    let text = "";
+    if (lang === 'en') {
+      text = `[Error Decode Result: ${result.error_analysis.code_name}]\n`;
+      text += `Location: ${result.error_analysis.location_context}\n`;
+      text += `Cause Analysis: ${result.error_analysis.simple_description}\n\n`;
+      text += `■ Troubleshooting Steps:\n`;
+      result.troubleshooting_steps.forEach((step, idx) => {
+        text += `[Step ${step.step}] ${step.title} (${step.level})\n`;
+        text += `Description: ${step.description}\n`;
+        if (step.copyable_command) {
+          text += `Executable Command: ${step.copyable_command}\n`;
+        }
+        if (step.is_warning) {
+          text += `⚠️ Warning: This step involves high risk.\n`;
+        }
+        text += `\n`;
+      });
+      text += `■ Prevention Tips:\n`;
+      result.prevention_tips.forEach(tip => {
+        text += `- ${tip}\n`;
+      });
+    } else {
+      text = `[에러 해독 결과: ${result.error_analysis.code_name}]\n`;
+      text += `발생 위치: ${result.error_analysis.location_context}\n`;
+      text += `원인 분석: ${result.error_analysis.simple_description}\n\n`;
+      text += `■ 해결 절차:\n`;
+      result.troubleshooting_steps.forEach((step, idx) => {
+        text += `[단계 ${step.step}] ${step.title} (${step.level})\n`;
+        text += `설명: ${step.description}\n`;
+        if (step.copyable_command) {
+          text += `실행 명령어: ${step.copyable_command}\n`;
+        }
+        if (step.is_warning) {
+          text += `⚠️ 주의: 경고가 동반되는 단계입니다.\n`;
+        }
+        text += `\n`;
+      });
+      text += `■ 예방 팁:\n`;
+      result.prevention_tips.forEach(tip => {
+        text += `- ${tip}\n`;
+      });
+    }
     
     copyToClipboard(text);
   };
@@ -87,16 +118,15 @@ function ResultCard({ isLoading, result }) {
 
   return (
     <section className="err-card" style={{ gap: '1.5rem', display: 'flex', flexDirection: 'column' }}>
-      <h2 className="err-section-title">AI Diagnosis Report</h2>
+      <h2 className="err-section-title">{t.reportTitle}</h2>
       
       {/* Placeholder state */}
       {!isLoading && !result && (
         <div className="err-placeholder-view">
           <div style={{ fontSize: '2.5rem' }}>🔍</div>
-          <h3 style={{ color: 'var(--text-accent)', fontWeight: 700 }}>대기 중</h3>
+          <h3 style={{ color: 'var(--text-accent)', fontWeight: 700 }}>{t.waiting}</h3>
           <p style={{ fontSize: '0.85rem', lineHeight: 1.5 }}>
-            패널에 에러 텍스트를 입력하거나<br />
-            에러 캡처본(이미지/로그 파일)을 업로드하여 디코딩을 시작하십시오.
+            {t.waitingDesc}
           </p>
         </div>
       )}
@@ -106,7 +136,7 @@ function ResultCard({ isLoading, result }) {
         <div className="err-placeholder-view" style={{ borderStyle: 'solid' }}>
           <div className="pulse-loader" style={{ width: '100%', maxWidth: '320px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <span>분석 진행도</span>
+              <span>{t.progressLabel}</span>
               <span style={{ fontWeight: 'bold', color: 'var(--text-accent)' }}>{progress}%</span>
             </div>
             
@@ -114,10 +144,9 @@ function ResultCard({ isLoading, result }) {
               <div className="progress-gauge-fill" style={{ width: `${progress}%` }}></div>
             </div>
 
-            <h3 style={{ color: 'var(--text-accent)', fontWeight: 700, margin: '0.75rem 0 0.25rem 0' }}>AI 에러 정밀 분석 중</h3>
+            <h3 style={{ color: 'var(--text-accent)', fontWeight: 700, margin: '0.75rem 0 0.25rem 0' }}>{t.progressTitle}</h3>
             <p style={{ fontSize: '0.85rem', textAlign: 'center', lineHeight: 1.5, marginBottom: '0.5rem' }}>
-              하드웨어 드라이버, 레지스트리 상태 및 로그 파일의<br />
-              예외 코드 발생지를 AI 전문가가 역추적하고 있습니다.
+              {t.progressDesc}
             </p>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', height: '1.2rem', display: 'flex', alignItems: 'center' }}>
               ⚡ {getLoadingMessage(progress)}
@@ -144,7 +173,7 @@ function ResultCard({ isLoading, result }) {
                 onClick={() => setShowOnlyWarnings(!showOnlyWarnings)}
                 style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
               >
-                ⚠️ {showOnlyWarnings ? '전체 보기' : '위험 조치만'}
+                ⚠️ {showOnlyWarnings ? t.allSteps : t.warningsOnly}
               </button>
             </div>
             
@@ -153,16 +182,16 @@ function ResultCard({ isLoading, result }) {
               onClick={copyAllResults}
               style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
             >
-              {mainCopied ? '✓ 복사됨' : '📋 리포트 복사'}
+              {mainCopied ? `✓ ${t.copied}` : `📋 ${t.copyReport}`}
             </button>
           </div>
 
           {/* Steps List */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <label className="err-label" style={{ marginBottom: '-0.5rem' }}>해결 조치 가이드 (Troubleshooting Steps)</label>
+            <label className="err-label" style={{ marginBottom: '-0.5rem' }}>{t.stepsLabel}</label>
             {filteredSteps.length === 0 ? (
               <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '2rem', border: '1px solid var(--border-color)' }}>
-                필터에 부합하는 해결 가이드가 없습니다.
+                {t.noSteps}
               </div>
             ) : (
               (() => {
@@ -170,7 +199,7 @@ function ResultCard({ isLoading, result }) {
                 return filteredSteps.map((step, idx) => {
                   let stepGuide = (step.visual_guide && step.visual_guide.type && step.visual_guide.type !== 'none')
                     ? step.visual_guide
-                    : getFallbackVisualGuideForStep(step);
+                    : getFallbackVisualGuideForStep(step, lang);
                   
                   // Keep at most one guide of each type per report to prevent visual clutter
                   if (stepGuide && stepGuide.type && stepGuide.type !== 'none') {
@@ -191,7 +220,7 @@ function ResultCard({ isLoading, result }) {
                           Step {step.step} • {step.level}
                         </span>
                         {step.is_warning && (
-                          <span style={{ color: 'var(--warning-color)', fontSize: '0.8rem', fontWeight: 'bold' }}>⚠️ 위험 조치</span>
+                          <span style={{ color: 'var(--warning-color)', fontSize: '0.8rem', fontWeight: 'bold' }}>⚠️ {t.warningStep}</span>
                         )}
                       </div>
                       
@@ -206,7 +235,7 @@ function ResultCard({ isLoading, result }) {
                             style={{ padding: '0.15rem 0.4rem', fontSize: '0.75rem', flexShrink: 0 }}
                             onClick={() => copyToClipboard(step.copyable_command, idx)}
                           >
-                            {copiedIndex === idx ? '✓ 복사됨' : '복사'}
+                            {copiedIndex === idx ? `✓ ${t.copied}` : t.copy}
                           </button>
                         </div>
                       )}
@@ -222,7 +251,7 @@ function ResultCard({ isLoading, result }) {
           {/* Prevention tips */}
           {result.prevention_tips && result.prevention_tips.length > 0 && (
             <div className="err-prevention">
-              <label className="err-label" style={{ color: 'var(--text-accent)', marginBottom: '0.25rem' }}>향후 재발 방지를 위한 예방 팁</label>
+              <label className="err-label" style={{ color: 'var(--text-accent)', marginBottom: '0.25rem' }}>{t.preventionLabel}</label>
               {result.prevention_tips.map((tip, idx) => (
                 <div key={idx} className="err-prevention-item">{tip}</div>
               ))}
@@ -237,7 +266,7 @@ function ResultCard({ isLoading, result }) {
 /**
  * Keyword-based fallback generator for per-step visual guides.
  */
-function getFallbackVisualGuideForStep(step) {
+function getFallbackVisualGuideForStep(step, lang = 'ko') {
   if (!step) return null;
   
   if (step.visual_guide && step.visual_guide.type && step.visual_guide.type !== 'none') {
@@ -253,64 +282,80 @@ function getFallbackVisualGuideForStep(step) {
   if (text.includes('레지스트리') || text.includes('registry') || text.includes('regedit')) {
     return {
       type: 'registry',
-      target_component: '레지스트리 편집기 (regedit)',
-      description: '해결 과정에 레지스트리 수정이 요구됩니다. 아래 폴더 경로를 순서대로 탐색하여 값을 정확하게 변경하세요.'
+      target_component: lang === 'en' ? 'Registry Editor (regedit)' : '레지스트리 편집기 (regedit)',
+      description: lang === 'en'
+        ? 'Registry modification is required. Navigate the folders below in order and change the value accurately.'
+        : '해결 과정에 레지스트리 수정이 요구됩니다. 아래 폴더 경로를 순서대로 탐색하여 값을 정확하게 변경하세요.'
     };
   }
   
   if (text.includes('cmd') || text.includes('명령 프롬프트') || text.includes('sfc /scannow') || text.includes('터미널') || text.includes('command prompt') || text.includes('ipconfig') || text.includes('dism')) {
     return {
       type: 'cmd',
-      target_component: '명령 프롬프트 (CMD)',
-      description: '이 단계의 지시 명령어를 실행하려면, Windows 명령 프롬프트 창을 켠 뒤 타이핑하여 입력해야 합니다.'
+      target_component: lang === 'en' ? 'Command Prompt (CMD)' : '명령 프롬프트 (CMD)',
+      description: lang === 'en'
+        ? 'To run the specified recovery command, you must open the Windows Command Prompt as Administrator and execute it.'
+        : '이 단계의 지시 명령어를 실행하려면, Windows 명령 프롬프트 창을 켠 뒤 타이핑하여 입력해야 합니다.'
     };
   }
   
   if (text.includes('메모리') || text.includes('ram') || text.includes('접촉 불량') || text.includes('memory') || text.includes('ddr')) {
     return {
       type: 'ram',
-      target_component: '메모리 카드 (RAM)',
-      description: '접촉 오류나 하드웨어 에러 해결을 위해 메인보드 메모리 슬롯에 RAM 모듈을 정상적으로 맞추어 끼우십시오.'
+      target_component: lang === 'en' ? 'Memory Card (RAM)' : '메모리 카드 (RAM)',
+      description: lang === 'en'
+        ? 'Insert the RAM module correctly into the motherboard slot to resolve connection errors or physical memory issues.'
+        : '접촉 오류나 하드웨어 에러 해결을 위해 메인보드 메모리 슬롯에 RAM 모듈을 정상적으로 맞추어 끼우십시오.'
     };
   }
   
   if (text.includes('케이블') || text.includes('모니터 선') || text.includes('hdmi') || text.includes('dp') || text.includes('포트') || text.includes('cable') || text.includes('port')) {
     return {
       type: 'cables',
-      target_component: '모니터 화면 케이블 포트',
-      description: '모니터 화면 전원/신호 케이블은 본체 상단 메인보드가 아닌 하단 외장 그래픽카드 가로 단자에 올바르게 연결하셔야 합니다.'
+      target_component: lang === 'en' ? 'Monitor Cable Connection' : '모니터 화면 케이블 포트',
+      description: lang === 'en'
+        ? 'Ensure the monitor video signal cable (HDMI/DP) is firmly connected to the lower horizontal external GPU port, not the upper motherboard port.'
+        : '모니터 화면 전원/신호 케이블은 본체 상단 메인보드가 아닌 하단 외장 그래픽카드 가로 단자에 올바르게 연결하셔야 합니다.'
     };
   }
   
   if (text.includes('graphics') || text.includes('gpu') || text.includes('그래픽 카드') || text.includes('vga') || text.includes('nvidia') || text.includes('amd')) {
     return {
       type: 'gpu',
-      target_component: '그래픽 카드 (GPU)',
-      description: '그래픽 연산 카드를 슬롯에 수직 밀착시키고 나사로 체결한 뒤 보조 전원 커넥터를 결속하는 조작 가이드입니다.'
+      target_component: lang === 'en' ? 'Graphics Card (GPU)' : '그래픽 카드 (GPU)',
+      description: lang === 'en'
+        ? 'Insert the graphics card vertically into the PCIe slot, secure it with screws, and connect the auxiliary PCIe power cable.'
+        : '그래픽 연산 카드를 슬롯에 수직 밀착시키고 나사로 체결한 뒤 보조 전원 커넥터를 결속하는 조작 가이드입니다.'
     };
   }
   
   if (text.includes('bios') || text.includes('바이오스') || text.includes('uefi') || text.includes('secure boot') || text.includes('부팅 설정') || text.includes('csm')) {
     return {
       type: 'bios',
-      target_component: 'BIOS 설정 화면',
-      description: '부팅 순간에 단축키(Del/F2)를 반복적으로 눌러 시스템 펌웨어 설정(BIOS)에 진입하여 옵션을 켜십시오.'
+      target_component: lang === 'en' ? 'BIOS Setup Screen' : 'BIOS 설정 화면',
+      description: lang === 'en'
+        ? 'Repeatedly press the hotkey (Del or F2) at the boot instant to enter system BIOS firmware settings and modify options.'
+        : '부팅 순간에 단축키(Del/F2)를 반복적으로 눌러 시스템 펌웨어 설정(BIOS)에 진입하여 옵션을 켜십시오.'
     };
   }
   
   if (text.includes('ssd') || text.includes('hdd') || text.includes('저장 장치') || text.includes('디스크') || text.includes('drive') || text.includes('nvme') || text.includes('m.2')) {
     return {
       type: 'drive',
-      target_component: 'M.2 SSD 저장 장치',
-      description: 'M.2 슬롯에 SSD 카드를 30도 사선으로 비스듬히 안착시킨 뒤 눕혀서 나사로 흔들림 없이 고정하십시오.'
+      target_component: lang === 'en' ? 'M.2 SSD Storage' : 'M.2 SSD 저장 장치',
+      description: lang === 'en'
+        ? 'Insert the SSD card at a 30-degree angle into the M.2 slot, press it flat, and secure it with the mounting screw.'
+        : 'M.2 슬롯에 SSD 카드를 30도 사선으로 비스듬히 안착시킨 뒤 눕혀서 나사로 흔들림 없이 고정하십시오.'
     };
   }
   
   if (text.includes('cpu') || text.includes('쿨러') || text.includes('프로세서') || text.includes('processor') || text.includes('서멀')) {
     return {
       type: 'cpu',
-      target_component: 'CPU 및 소켓 장착 위치',
-      description: '핵심 연산 장치인 CPU 칩 모서리 삼각형 정렬을 맞춰 소켓에 장착하고 서멀 그리스를 도포하여 쿨러를 얹으십시오.'
+      target_component: lang === 'en' ? 'CPU Socket & Cooler' : 'CPU 및 소켓 장착 위치',
+      description: lang === 'en'
+        ? 'Align the triangle marks on the CPU chip and socket, insert carefully, apply thermal paste, and mount the cooler.'
+        : '핵심 연산 장치인 CPU 칩 모서리 삼각형 정렬을 맞춰 소켓에 장착하고 서멀 그리스를 도포하여 쿨러를 얹으십시오.'
     };
   }
   
@@ -318,4 +363,3 @@ function getFallbackVisualGuideForStep(step) {
 }
 
 window.ResultCard = ResultCard;
-

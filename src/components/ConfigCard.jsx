@@ -14,8 +14,10 @@ function ConfigCard({
   isLoading,
   errorStatus,
   setErrorStatus,
-  onAnalyze
+  onAnalyze,
+  lang
 }) {
+  const t = window.TRANSLATIONS[lang] || window.TRANSLATIONS.ko;
   const [isDragging, setIsDragging] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isMobile, setIsMobile] = useState(() => {
@@ -50,7 +52,7 @@ function ConfigCard({
       }
     } catch (err) {
       console.error("Error accessing camera: ", err);
-      setErrorStatus("카메라 작동 오류: 카메라 권한을 허용해 주시거나 다른 브라우저를 이용해 주세요.");
+      setErrorStatus(t.cameraError);
       setIsCameraActive(false);
     }
   };
@@ -160,7 +162,7 @@ function ConfigCard({
       };
       reader.readAsText(file);
     } else {
-      setErrorStatus('지원되지 않는 파일 형식입니다. 이미지(.png, .jpg, .jpeg) 또는 로그(.txt, .log) 파일만 업로드 가능합니다.');
+      setErrorStatus(t.unsupportedFile);
     }
   };
 
@@ -182,19 +184,19 @@ function ConfigCard({
 
   return (
     <section className="err-card">
-      <h2 className="err-section-title">Error Diagnosis Configuration</h2>
+      <h2 className="err-section-title">{t.configTitle}</h2>
       
       {/* Manual Textbox (Top) */}
       <div className="err-form-group">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <label className="err-label">로그 내용 또는 에러 메시지 직접 입력</label>
+          <label className="err-label">{t.textInputLabel}</label>
           {(logText || imageFile) && (
-            <button className="btn-minimal" style={{ padding: '0.1rem 0.5rem', fontSize: '0.75rem', border: 'none' }} onClick={clearAllInputs}>전체 초기화</button>
+            <button className="btn-minimal" style={{ padding: '0.1rem 0.5rem', fontSize: '0.75rem', border: 'none' }} onClick={clearAllInputs}>{t.clearAll}</button>
           )}
         </div>
         <textarea
           className="err-textarea"
-          placeholder="에러 메시지나 코드를 직접 입력하거나 붙여넣어 주세요. 로그 파일을 드롭존에 올려도 이곳에 자동으로 로드됩니다."
+          placeholder={t.textInputPlaceholder}
           value={logText}
           onChange={(e) => setLogText(e.target.value)}
         />
@@ -203,7 +205,10 @@ function ConfigCard({
         {logText && logText.length > 10000 && (
           <div style={{ marginTop: '0.5rem', border: '1px dashed var(--border-color)', padding: '0.75rem', backgroundColor: 'var(--bg-secondary)' }}>
             <span className="err-label" style={{ display: 'block', marginBottom: '0.5rem', color: 'var(--text-accent)' }}>
-              ⚡ 대용량 로그 감지 (약 {(logText.length / 1024).toFixed(1)}KB) - 전송 옵션 선택 (3차 방안)
+              {lang === 'en'
+                ? `⚡ Large Log Detected (approx ${(logText.length / 1024).toFixed(1)}KB) - Select Transmission Option`
+                : `⚡ 대용량 로그 감지 (약 ${(logText.length / 1024).toFixed(1)}KB) - 전송 옵션 선택 (3차 방안)`
+              }
             </span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
@@ -214,7 +219,7 @@ function ConfigCard({
                   checked={logOption === 'smart'} 
                   onChange={() => setLogOption('smart')}
                 />
-                <span>에러 핵심 자동 요약 전송 (1차 방안 • 권장)</span>
+                <span>{t.logOptionSmart}</span>
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                 <input 
@@ -224,7 +229,7 @@ function ConfigCard({
                   checked={logOption === 'tail'} 
                   onChange={() => setLogOption('tail')}
                 />
-                <span>로그 마지막 부분만 전송 (2차 방안 • 끝부분 8,000자)</span>
+                <span>{t.logOptionTail}</span>
               </label>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                 <input 
@@ -234,7 +239,7 @@ function ConfigCard({
                   checked={logOption === 'full'} 
                   onChange={() => setLogOption('full')}
                 />
-                <span>전체 로그 원본 그대로 전송 (API 제한 발생 가능성 있음)</span>
+                <span>{t.logOptionFull}</span>
               </label>
             </div>
           </div>
@@ -243,7 +248,7 @@ function ConfigCard({
 
       {/* File Dropzone (Bottom) */}
       <div className="err-form-group">
-        <label className="err-label">에러 화면 업로드 (이미지 또는 로그 파일)</label>
+        <label className="err-label">{t.fileInputLabel}</label>
         
         {!isCameraActive ? (
           <div 
@@ -263,8 +268,13 @@ function ConfigCard({
             />
             <div className="err-dropzone-icon">📷 📝</div>
             <div className="err-dropzone-text">
-              에러 화면을 <strong>드래그앤드롭</strong>하거나 <strong>클릭</strong>하여 선택<br />
-              <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>(png, jpg, jpeg, txt, log 지원)</span>
+              {lang === 'en' ? (
+                <>Drag and drop error screen or <strong>click</strong> to select</>
+              ) : (
+                <>에러 화면을 <strong>드래그앤드롭</strong>하거나 <strong>클릭</strong>하여 선택</>
+              )}
+              <br />
+              <span style={{ fontSize: '0.75rem', opacity: 0.7 }}>{t.fileDropzoneSub}</span>
             </div>
             {isMobile && (
               <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.5rem' }}>
@@ -273,7 +283,7 @@ function ConfigCard({
                   onClick={startCamera}
                   style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem' }}
                 >
-                  📷 모바일/카메라 촬영
+                  📷 {t.mobileCamera}
                 </button>
               </div>
             )}
@@ -282,8 +292,8 @@ function ConfigCard({
           <div className="err-camera-view">
             <video ref={videoRef} autoPlay playsInline className="err-video" />
             <div className="err-camera-controls">
-              <button className="btn-minimal active" onClick={capturePhoto}>촬영</button>
-              <button className="btn-minimal" onClick={stopCamera}>취소</button>
+              <button className="btn-minimal active" onClick={capturePhoto}>{t.cameraShot}</button>
+              <button className="btn-minimal" onClick={stopCamera}>{t.cameraCancel}</button>
             </div>
           </div>
         )}
@@ -295,8 +305,8 @@ function ConfigCard({
           {imageFile && (
             <div className="err-form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="err-label">📷 캡처된 에러 이미지</span>
-                <button className="btn-minimal" style={{ padding: '0.1rem 0.5rem', fontSize: '0.75rem' }} onClick={() => removeFile('image')}>제거</button>
+                <span className="err-label">📷 {t.capturedImage}</span>
+                <button className="btn-minimal" style={{ padding: '0.1rem 0.5rem', fontSize: '0.75rem' }} onClick={() => removeFile('image')}>{t.remove}</button>
               </div>
               <div className="err-image-container">
                 <img src={imageFile} alt="Preview" className="err-image-preview" />
@@ -306,8 +316,8 @@ function ConfigCard({
           {logFileName && (
             <div className="err-form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="err-label">📝 로드된 로그 파일: {logFileName}</span>
-                <button className="btn-minimal" style={{ padding: '0.1rem 0.5rem', fontSize: '0.75rem' }} onClick={() => removeFile('log')}>제거</button>
+                <span className="err-label">📝 {t.loadedLog}: {logFileName}</span>
+                <button className="btn-minimal" style={{ padding: '0.1rem 0.5rem', fontSize: '0.75rem' }} onClick={() => removeFile('log')}>{t.remove}</button>
               </div>
             </div>
           )}
@@ -323,10 +333,10 @@ function ConfigCard({
         {isLoading ? (
           <>
             <span className="spinner"></span>
-            <span>AI 에러 분석중...</span>
+            <span>{t.decoding}</span>
           </>
         ) : (
-          '에러 디코드 시작 (Decode)'
+          t.decodeStart
         )}
       </button>
 

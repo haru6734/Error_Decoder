@@ -2,6 +2,11 @@ function ErrorDecoder() {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('err-theme') || 'light';
   });
+
+  // Language state (defaults to ko or saved choice)
+  const [lang, setLang] = useState(() => {
+    return localStorage.getItem('err-lang') || 'ko';
+  });
   
   // File states
   const [imageFile, setImageFile] = useState(null); // base64 string
@@ -32,6 +37,11 @@ function ErrorDecoder() {
     const nextVal = !saveHistoryEnabled;
     setSaveHistoryEnabled(nextVal);
     localStorage.setItem('err-save-history', String(nextVal));
+  };
+
+  const handleToggleLang = (newLang) => {
+    setLang(newLang);
+    localStorage.setItem('err-lang', newLang);
   };
 
 
@@ -282,8 +292,21 @@ function ErrorDecoder() {
     if (logText) {
       const sensitiveList = detectSensitiveInfo(logText);
       if (sensitiveList.length > 0) {
-        const listText = sensitiveList.map(item => `- [${item.type}] ${item.value}`).join('\n');
-        const confirmMsg = `입력하신 로그에 개인정보 또는 시스템 보안 정보가 포함되어 있습니다:\n\n${listText}\n\n이 데이터는 분석을 위해 외부 AI API(Gemini)로 안전하게 전송됩니다. 전송 전에 민감한 정보를 한 번 더 확인하시거나 마스킹해 주세요.\n\n이대로 분석을 진행하시겠습니까?`;
+        const listText = sensitiveList.map(item => {
+          let translatedType = item.type;
+          if (lang === 'en') {
+            if (item.type === '이메일 주소') translatedType = 'Email Address';
+            else if (item.type === 'IP 주소') translatedType = 'IP Address';
+            else if (item.type === 'Google API Key') translatedType = 'Google API Key';
+            else if (item.type === '비밀번호/인증 토큰 의심') translatedType = 'Suspected Password/Token';
+            else if (item.type === '데이터베이스 접속 URL') translatedType = 'Database Connection URL';
+            else if (item.type === '시스템 사용자 경로') translatedType = 'System User Path';
+          }
+          return `- [${translatedType}] ${item.value}`;
+        }).join('\n');
+
+        const t = window.TRANSLATIONS[lang] || window.TRANSLATIONS.ko;
+        const confirmMsg = `${t.sensitiveWarnTitle}\n\n${listText}\n\n${t.sensitiveWarnFooter}`;
         
         if (!window.confirm(confirmMsg)) {
           return; // Abort analysis
@@ -298,7 +321,8 @@ function ErrorDecoder() {
         imageFile,
         logText,
         logFileName,
-        logOption
+        logOption,
+        lang
       });
 
       setResult(parsedResult);
@@ -310,7 +334,10 @@ function ErrorDecoder() {
       if (err.status === 'REQUIRE_AUTH') {
         setShowAuthModal(true);
       } else {
-        setErrorStatus(`분석 중 에러가 발생했습니다: ${err.message}`);
+        const errMsg = lang === 'en' 
+          ? `An error occurred during analysis: ${err.message}`
+          : `분석 중 에러가 발생했습니다: ${err.message}`;
+        setErrorStatus(errMsg);
       }
     } finally {
       setIsLoading(false);
@@ -340,6 +367,8 @@ function ErrorDecoder() {
           onOpenHistory={() => setIsHistoryOpen(true)}
           theme={theme}
           onToggleTheme={toggleTheme}
+          lang={lang}
+          onToggleLang={handleToggleLang}
         />
 
         {/* Main Workspace Layout */}
@@ -359,12 +388,14 @@ function ErrorDecoder() {
             errorStatus={errorStatus}
             setErrorStatus={setErrorStatus}
             onAnalyze={handleAnalyze}
+            lang={lang}
           />
 
           {/* Right Panel: Resolution Output & Guide */}
           <ResultCard 
             isLoading={isLoading}
             result={result}
+            lang={lang}
           />
         </main>
       </div>
@@ -378,6 +409,7 @@ function ErrorDecoder() {
         onDeleteItem={deleteHistoryItem}
         saveHistoryEnabled={saveHistoryEnabled}
         onToggleSaveHistory={handleToggleSaveHistory}
+        lang={lang}
       />
 
       {/* Google Auth & Mock Payment Modal */}
@@ -385,6 +417,7 @@ function ErrorDecoder() {
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
         onSuccess={handleAuthSuccess}
+        lang={lang}
       />
     </div>
   );
